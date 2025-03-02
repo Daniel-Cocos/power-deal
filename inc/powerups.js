@@ -80,16 +80,18 @@ function closeRulesPopup() {
 
 // Powerups
 const powerups = [
-  { image: 'images/image1.jpg', title: 'Powerup 1', description: 'Description 1', chance: 10 },
-  { image: 'images/image2.jpg', title: 'Powerup 2', description: 'Description 2', chance: 10 },
-  { image: 'images/image3.jpg', title: 'Powerup 3', description: 'Description 3', chance: 10 },
-  { image: 'images/image4.jpg', title: 'Powerup 4', description: 'Description 4', chance: 10 },
-  { image: 'images/image5.jpg', title: 'Powerup 5', description: 'Description 5', chance: 10 },
-  { image: 'images/image6.jpg', title: 'Powerup 6', description: 'Description 6', chance: 10 },
-  { image: 'images/image7.jpg', title: 'Powerup 7', description: 'Description 7', chance: 10 },
-  { image: 'images/image8.jpg', title: 'Powerup 8', description: 'Description 8', chance: 10 },
-  { image: 'images/image9.jpg', title: 'Powerup 9', description: 'Description 9', chance: 10 },
-  { image: 'images/image10.jpg', title: 'Powerup 10', description: 'Description 10', chance: 10 },
+  { image: 'images/image1.jpg', title: 'Sturdy Wipe', description: 'All active powerups get ignored', chance: 1 },
+  { image: 'images/image2.jpg', title: 'Shield', description: 'Used to prevent any powerup to be used on you', chance: 5},
+  { image: 'images/image3.jpg', title: 'Mirror', description: 'After someone uses an offensive powerup use this to redirect the effect back to them', chance: 3 },
+  { image: 'images/image4.jpg', title: '+5', description: 'Make either self or opponent to add 5 to total by end of round', chance: 10 },
+  { image: 'images/image5.jpg', title: '+10', description: 'Make either self or opponent to add 10 to total by end of round', chance: 5 },
+  { image: 'images/image6.jpg', title: 'Remove', description: 'Make either self or opponent to get rid of latest drawn card', chance: 5 },
+  { image: 'images/image7.jpg', title: 'Force Draw', description: 'Force and opponent to draw another card', chance: 5 },
+  { image: 'images/image8.jpg', title: 'Swap Hands', description: 'Choose opponent to swap hands with', chance: 5 },
+  { image: 'images/image9.jpg', title: 'Rewind', description: 'The latest action such as card draws or power up use will be reverted', chance: 5 },
+  { image: 'images/image10.jpg', title: 'Steal', description: 'Choose on opponent that you want to steal their latest card from', chance: 10 },
+  { image: 'images/image11.jpg', title: 'Signal Jammer', description: 'Prevent 1 opponent to use any powerup for duration of next round', chance: 10 },
+  { image: 'images/image12.jpg', title: 'Invisible Hand', description: 'For duratoin of next round all your cards will be hidden from every opponent', chance: 10 },
 ];
 
 // DOM elements
