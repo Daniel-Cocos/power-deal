@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="css/global.css">
+  <script src="inc/time.js" defer></script>
+  <script src="inc/powerups.js" defer></script>
+</head>
+
+<body>
+  <main>
+    <!-- Popup for Rules -->
+    <div id="rulesPopup" class="popup">
+      <div class="popup-content">
+        <p id="popupRulesText">Rules of game</p>
+        <button id="closeRulesButton">Close</button>
+      </div>
+    </div>
+
+    <!-- Buttons and Rules -->
+    <p id="rulesText" class="clickable">Rules</p><br>
+    <button id="generateButton">Generate Powerup</button>
+    <button onclick="location.reload();">Reset</button>
+
+    <!-- Powerup section -->
+    <div id="powerupsContainer"></div>
+  </main>
+
+  <!-- Powerup Popup -->
+  <div id="powerupPopup" class="popup">
+    <div class="popup-content">
+      <img id="popupImage" src="" alt="Powerup Image">
+      <p id="popupDescription"></p>
+      <button id="useButton">Use Powerup</button>
+      <button id="closeButton">Close</button>
+    </div>
+  </div>
+</body>
+
+</html>
