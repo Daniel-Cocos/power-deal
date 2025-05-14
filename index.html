@@ -5,7 +5,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="css/global.css">
-  <script src="inc/time.js" defer></script>
   <script src="inc/powerups.js" defer></script>
 </head>
 
@@ -31,6 +30,9 @@
   <!-- Powerup Popup -->
   <div id="powerupPopup" class="popup">
     <div class="popup-content">
+      <!-- NEW: Container for SVG -->
+      <div id="popupSVGContainer"></div>
+
       <img id="popupImage" src="" alt="Powerup Image">
       <p id="popupDescription"></p>
       <button id="useButton">Use Powerup</button>

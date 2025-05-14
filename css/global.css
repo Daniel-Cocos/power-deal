@@ -159,3 +159,16 @@ button:focus {
   color: #ff8000;
   text-decoration: underline;
 }
+
+.type {
+  text-align: center;
+  font-style: italic;
+  color: #aaa;
+  margin: 4px 0;
+}
+
+#popupSVGContainer {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
