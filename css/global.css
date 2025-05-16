@@ -172,3 +172,135 @@ button:focus {
   justify-content: center;
   margin-bottom: 10px;
 }
+
+/* Powerup Container */
+#powerupsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+  margin-left: 10px;
+}
+
+/* Powerup cards */
+.powerup {
+  position: relative;
+  width: 200px;
+  height: 250px;
+  border: 2px solid #ff8000;
+  border-radius: 5px;
+  background-color: #222;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 24px;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.3s ease;
+  margin-left: 10px;
+}
+.powerup:hover {
+  transform: scale(1.1);
+  background-color: #444;
+}
+
+/* Rarity badge on card */
+.rarity-badge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  padding: 4px 0;
+  font-weight: bold;
+  font-size: 0.9em;
+  color: #fff;
+  z-index: 1;
+}
+
+/* Rarity styles */
+.powerup.common { border-color: gray; }
+.powerup.common .rarity-badge { background: gray; }
+
+.powerup.rare { border-color: lightblue; }
+.powerup.rare .rarity-badge { background: lightblue; }
+
+.powerup.epic { border-color: purple; }
+.powerup.epic .rarity-badge { background: purple; }
+
+@keyframes rainbow {
+  0%,100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+.powerup.legendary {
+  border: 2px solid;
+  border-image: linear-gradient(45deg, red, orange, yellow, green, blue, indigo, violet) 1;
+}
+.powerup.legendary .rarity-badge {
+  background: linear-gradient(45deg, red, orange, yellow, green, blue, indigo, violet);
+  background-size: 400% 400%;
+  animation: rainbow 5s ease infinite;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Popup overlay */
+.popup {
+  z-index: 1000;
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  justify-content: center;
+  align-items: center;
+}
+
+/* Popup content box */
+.popup-content {
+  background-color: #333;
+  padding: 20px;
+  border-radius: 5px;
+  text-align: center;
+  max-width: 500px;
+  width: 80%;
+  position: relative;
+}
+
+/* Popup title */
+.popup-title {
+  margin: 0 0 10px;
+  padding: 6px;
+  color: #fff;
+  border-radius: 4px;
+}
+.popup-title.common { background: gray; }
+.popup-title.rare { background: lightblue; }
+.popup-title.epic { background: purple; }
+.popup-title.legendary {
+  background: linear-gradient(45deg, red, orange, yellow, green, blue, indigo, violet);
+  background-size: 400% 400%;
+  animation: rainbow 5s ease infinite;
+}
+
+/* Popup description */
+.popup-description {
+  margin: 12px 0;
+  color: #ccc;
+}
+
+/* Popup buttons */
+.popup-content button {
+  margin: 5px;
+  padding: 8px 16px;
+  background-color: #ff8000;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  border-radius: 5px;
+}
+.popup-content button:hover {
+  background-color: #ff4d00;
+}

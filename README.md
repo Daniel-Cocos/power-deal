@@ -14,18 +14,22 @@ Web page generates random "powerups" in the form of cards, which, can be used du
 
 Feel free to customize as you wish
 
-- **Sturdy Wipe:** Ignores all active powerups.
-- **Shield:** Prevents any powerup from being used on the player.
-- **Mirror:** Redirects offensive powerups back to the opponent.
-- **+5:** Forces the player or their opponent to add 5 to their total by the end of the round.
-- **+10:** Forces the player or their opponent to add 10 to their total by the end of the round.
-- **Remove:** Makes either the player or their opponent discard their latest drawn card.
-- **Force Draw:** Forces an opponent to draw another card.
-- **Swap Hands:** Allows the player to choose an opponent and swap hands with them.
-- **Rewind:** Reverts the last action, such as card draws or powerup uses.
-- **Steal:** Allows the player to steal a card from an opponent’s hand.
-- **Signal Jammer:** Prevents 1 opponent from using any powerup for the duration of the next round.
-- **Invisible Hand:** For the duration of the next round, all your cards will be hidden from every opponent.
+| Title          | Description                                                        | Chance | Type      |
+|----------------|--------------------------------------------------------------------|--------|-----------|
+| +10            | Add 10 to self or opponent                                         | 4      | Offensive |
+| +5             | Add 5 to self or opponent                                          | 8      | Offensive |
+| Chicken        | Remove 1 chip from your bet                                        | 11     | Defensive |
+| Force Draw     | Force opponent to draw another card                                | 8      | Offensive |
+| Invisible Hand | Your cards are hidden next round                                   | 3      | Utility   |
+| Mirror         | Redirect offensive powerup back to user                            | 7      | Defensive |
+| Raised Stakes  | Force everyone to raise bets by 3 including self                   | 9      | Utility   |
+| Remove         | Remove latest drawn card from opponent                             | 9      | Offensive |
+| Rewind         | Revert last action                                                 | 10     | Utility   |
+| Shield         | Used to prevent any powerup to be used on you                      | 9      | Defensive |
+| Signal Jammer  | Block opponent powerups next round                                 | 5      | Utility   |
+| Steal          | Steal last drawn card from one opponent                            | 10     | Offensive |
+| Sturdy Wipe    | Make one opponent lose all the powerups that they have acquired    | 3      | Utility   |
+| Swap Hands     | Swap hands with opponent                                           | 4      | Utility   |
 
 
 ## Setup
