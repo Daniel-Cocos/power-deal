@@ -1,4 +1,4 @@
-# Power Deal
+# [Power Deal](https://daniel-cocos.github.io/power-deal/)
 
 Web page generates random "powerups" in the form of cards, which, can be used during Blackjack games to add an extra layer of strategy and fun when playing with friends. I have coded this project for fun, **I do not endorce gambling in any way shape or form**. 
 
