@@ -5,10 +5,8 @@ Web page generates random "powerups" in the form of cards, which, can be used du
 ## Features
 
 - **Random Powerups Generation:** Powerups are randomly generated each time the "Generate Powerup" button is clicked.
-- **Interactive Powerup Cards:** Each powerup card is interactive, displaying an image, title, and description. Clicking a powerup will show a detailed popup.
 - **Powerup Effects:** Each powerup comes with a unique ability (e.g., stealing cards, forcing a draw, etc.).
 - **Rules Popup:** View the rules of the game by clicking on the "Rules" link.
-- **Powerup Usage:** A player can use a powerup, causing its effect to be applied to the game, and it will be removed from the player's available powerups.
 
 ## Powerups
 
@@ -34,13 +32,7 @@ Feel free to customize as you wish
 
 ## Setup
 
-To get started, simply clone the repository and open the `index.html` file in your browser.
-
-### Clone the Repository
-
-```bash
-git clone https://github.com/Daniel-Cocos/power-deal.git
-```
+To get started, simply clone the repository and open the `index.html` file in your browser or [click here](https://daniel-cocos.github.io/power-deal/).
 
 ### File Structure
 
@@ -60,7 +52,3 @@ power-deal
 2. **View Powerup Details:** Click on any generated powerup to open a detailed popup displaying its image and description.
 3. **Use Powerup:** Once in the popup, click the "Use Powerup" button to apply the powerup and close the popup.
 4. **Close Popup:** You can also close the popup by clicking the "Close" button.
-
-## Dependencies
-
-- None. I am using vanilla JavaScript, HTML, and CSS.
