@@ -1,6 +1,5 @@
 /* Body styling */
 html, body {
-  cursor: url('../images/CustomCursor.png'), auto;
   background-color: #1a1a1a;
   color: #cccccc;
   margin: 0;
