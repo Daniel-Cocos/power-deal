@@ -557,7 +557,7 @@ function toggleRulesPopup() {
   document.getElementById('popupRulesText').innerHTML =
     `<strong>Base Rules:</strong><br>
      1. Players start with an equal number of chips.<br>
-     2. Each round, players place a bet, draw 2 normal cards and draw 3 power-up cards.<br>
+     2. Each round, players place a bet, draw 2 cards from the physical deck just like in a normal game of black jack and draw 3 power-up cards.<br>
      3. Goal is to reach 21.<br>
      4. Players take turns until everyone agrees to finish the round.<br>
      5. In the case of a draw, all chips go into a temporary pot for which next round will be played for.<br>
