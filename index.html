@@ -5,6 +5,9 @@
   <title>Power-Deal</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Inter:wght@400;600;700&display=swap">
   <link rel="stylesheet" href="css/global.css">
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
   <script src="inc/powerups.js" defer></script>
@@ -14,7 +17,11 @@
 <body>
   <!-- Menu: enter name, then create or join -->
   <main id="menuScreen" class="screen">
+    <div class="menu-cards" aria-hidden="true">
+      <span class="menu-card">♠</span><span class="menu-card red">♥</span><span class="menu-card">♣</span><span class="menu-card red">♦</span>
+    </div>
     <h1 class="logo">Power-Deal</h1>
+    <p class="tagline">Blackjack, with a few tricks up your sleeve</p>
     <p id="rulesText" class="clickable">Rules</p>
 
     <div class="panel">
@@ -71,13 +78,22 @@
       </aside>
 
       <section>
+        <div id="turnBar" class="turn-bar">
+          <span id="turnText"></span>
+          <span id="myPoints"></span>
+          <button id="endTurnButton">End turn</button>
+        </div>
+
         <div class="hand-header">
-          <h2>Your powerups</h2>
-          <button id="generateButton">Generate Powerup</button>
-          <button id="discardButton" class="secondary">Discard all</button>
+          <h2>Your hand</h2>
+          <button id="discardButton" class="secondary small">Discard all</button>
+          <button id="generateButton" class="deck" title="Draw a powerup">
+            <span class="deck-stack" aria-hidden="true"></span>
+            <span>Draw powerup</span>
+          </button>
         </div>
         <div id="powerupsContainer"></div>
-        <p id="emptyHand" class="muted">No powerups yet. Click "Generate Powerup" to draw one.</p>
+        <p id="emptyHand" class="muted empty-hand">Your hand is empty. Draw from the deck to get powerups.</p>
       </section>
     </div>
   </main>
@@ -102,6 +118,8 @@
   <div id="powerupPopup" class="popup">
     <div class="popup-content"></div>
   </div>
+
+  <div id="turnBanner" aria-live="polite"><span>Your turn</span><small>1 Action · 1 Bonus action</small></div>
 
   <div id="toasts"></div>
 </body>
