@@ -6,40 +6,104 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="css/global.css">
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
   <script src="inc/powerups.js" defer></script>
+  <script src="inc/app.js" defer></script>
 </head>
 
 <body>
-  <main>
-    <!-- Popup for Rules -->
-    <div id="rulesPopup" class="popup">
-      <div class="popup-content">
-        <p id="popupRulesText">Rules of game</p>
-        <button id="closeRulesButton">Close</button>
+  <!-- Menu: enter name, then create or join -->
+  <main id="menuScreen" class="screen">
+    <h1 class="logo">Power-Deal</h1>
+    <p id="rulesText" class="clickable">Rules</p>
+
+    <div class="panel">
+      <label for="nameInput">Your name</label>
+      <input id="nameInput" type="text" maxlength="20" placeholder="Enter your name" autocomplete="nickname">
+
+      <div class="tabs">
+        <button id="showCreateButton" class="tab active">Create game</button>
+        <button id="showJoinButton" class="tab">Join game</button>
       </div>
+
+      <div id="createPanel">
+        <label for="maxPlayersInput">Max players</label>
+        <select id="maxPlayersInput"></select>
+        <button id="createButton" class="wide">Create room</button>
+      </div>
+
+      <div id="joinPanel" hidden>
+        <label for="codeInput">Join code</label>
+        <input id="codeInput" type="text" maxlength="5" placeholder="e.g. K7QXM" autocomplete="off" spellcheck="false">
+        <button id="joinButton" class="wide">Join room</button>
+      </div>
+
+      <p id="menuError" class="error"></p>
     </div>
-
-    <!-- Buttons and Rules -->
-    <p id="rulesText" class="clickable">Rules</p><br>
-    <button id="generateButton">Generate Powerup</button>
-    <button onclick="location.reload();">Reset</button>
-
-    <!-- Powerup section -->
-    <div id="powerupsContainer"></div>
   </main>
+
+  <!-- Room: players, your powerups and the activity log -->
+  <main id="roomScreen" class="screen" hidden>
+    <header class="room-header">
+      <div>
+        <span class="muted">Room code</span>
+        <span id="roomCode" class="room-code"></span>
+      </div>
+      <div class="room-actions">
+        <button id="copyCodeButton" class="secondary">Copy code</button>
+        <button id="copyLinkButton" class="secondary">Copy invite link</button>
+        <span id="rulesTextRoom" class="clickable">Rules</span>
+        <button id="leaveButton" class="danger">Leave</button>
+      </div>
+    </header>
+
+    <div class="room-layout">
+      <aside class="panel">
+        <h2>Players <span id="playerCount" class="muted"></span></h2>
+        <ul id="playerList"></ul>
+        <div id="hostControls" hidden>
+          <label for="roomMaxPlayers">Max players</label>
+          <select id="roomMaxPlayers"></select>
+        </div>
+
+        <h2>Activity</h2>
+        <ul id="activityLog"></ul>
+      </aside>
+
+      <section>
+        <div class="hand-header">
+          <h2>Your powerups</h2>
+          <button id="generateButton">Generate Powerup</button>
+          <button id="discardButton" class="secondary">Discard all</button>
+        </div>
+        <div id="powerupsContainer"></div>
+        <p id="emptyHand" class="muted">No powerups yet. Click "Generate Powerup" to draw one.</p>
+      </section>
+    </div>
+  </main>
+
+  <!-- Status overlay for connecting / errors -->
+  <div id="statusPopup" class="popup">
+    <div class="popup-content">
+      <p id="statusText"></p>
+      <button id="statusButton" hidden>Back to menu</button>
+    </div>
+  </div>
+
+  <!-- Popup for Rules -->
+  <div id="rulesPopup" class="popup">
+    <div class="popup-content">
+      <p id="popupRulesText">Rules of game</p>
+      <button id="closeRulesButton">Close</button>
+    </div>
+  </div>
 
   <!-- Powerup Popup -->
   <div id="powerupPopup" class="popup">
-    <div class="popup-content">
-      <!-- NEW: Container for SVG -->
-      <div id="popupSVGContainer"></div>
-
-      <img id="popupImage" src="" alt="Powerup Image">
-      <p id="popupDescription"></p>
-      <button id="useButton">Use Powerup</button>
-      <button id="closeButton">Close</button>
-    </div>
+    <div class="popup-content"></div>
   </div>
+
+  <div id="toasts"></div>
 </body>
 
 </html>

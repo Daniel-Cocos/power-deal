@@ -19,7 +19,7 @@ function getRarity(chance) {
   return { label: 'Common', cls: 'common' };
 }
 
-function createPowerupElement(data) {
+function createPowerupElement(data, onClick) {
   const powerup = document.createElement('div');
   powerup.classList.add('powerup');
 
@@ -51,17 +51,17 @@ function createPowerupElement(data) {
   type.textContent = data.type;
   powerup.appendChild(type);
 
-  // Clicking shows the full popup (with description)
-  powerup.addEventListener('click', () => {
-    showPopup(data, powerup);
-  });
+  if (onClick) powerup.addEventListener('click', onClick);
 
   return powerup;
 }
 
+let svgCounter = 0;
+
 function createPowerupSVG(title) {
   const svgNS = "http://www.w3.org/2000/svg";
   const svg = document.createElementNS(svgNS, 'svg');
+  const gradientId = 'mirrorGradient' + (++svgCounter);
   svg.setAttribute('viewBox', '0 0 200 150');
 
   function rect(x, y, width, height, fill, rx = 0) {
@@ -275,7 +275,7 @@ function createPowerupSVG(title) {
 
     case 'Mirror': {
       ellipse(100, 75, 40, 60, '#888'); // Frame
-      ellipse(100, 75, 35, 55, 'url(#mirrorGradient)'); // Gradient Effect
+      ellipse(100, 75, 35, 55, `url(#${gradientId})`); // Gradient Effect
       line(85, 40, 115, 110, 'white', 1); // Line
 
       break;
@@ -469,7 +469,7 @@ function createPowerupSVG(title) {
   if (title === 'Mirror') {
     const defs = document.createElementNS(svgNS, 'defs');
     const grad = document.createElementNS(svgNS, 'linearGradient');
-    grad.setAttribute('id', 'mirrorGradient');
+    grad.setAttribute('id', gradientId);
     grad.setAttribute('x1', '0%');
     grad.setAttribute('x2', '100%');
     grad.setAttribute('y1', '0%');
@@ -493,13 +493,14 @@ function createPowerupSVG(title) {
 }
 
 // Popup logic
-function showPopup(data, powerupElement) {
+// onUse is optional: when given, a "Use Powerup" button is shown
+function showPopup(data, onUse) {
   const popup = document.getElementById('powerupPopup');
   const container = popup.querySelector('.popup-content');
   container.innerHTML = ''; // clear previous
 
   // Rarity-colored title at top
-  const { label, cls } = getRarity(data.chance);
+  const { cls } = getRarity(data.chance);
   const titleEl = document.createElement('h2');
   titleEl.textContent = data.title;
   titleEl.classList.add('popup-title', cls);
@@ -518,38 +519,25 @@ function showPopup(data, powerupElement) {
   container.appendChild(desc);
 
   // Buttons
-  const useBtn = document.createElement('button');
-  useBtn.textContent = 'Use Powerup';
-  useBtn.addEventListener('click', () => {
-    powerupElement.remove();
-    popup.style.display = 'none';
-  });
-  container.appendChild(useBtn);
+  if (onUse) {
+    const useBtn = document.createElement('button');
+    useBtn.textContent = 'Use Powerup';
+    useBtn.addEventListener('click', () => {
+      popup.style.display = 'none';
+      onUse();
+    });
+    container.appendChild(useBtn);
+  }
 
   const closeBtn = document.createElement('button');
   closeBtn.textContent = 'Close';
+  closeBtn.classList.add('secondary');
   closeBtn.addEventListener('click', () => {
     popup.style.display = 'none';
   });
   container.appendChild(closeBtn);
 
   popup.style.display = 'flex';
-}
-
-function closePopup() {
-  powerupPopup.style.display = 'none';
-  if (currentPowerupElement) {
-    const powerupDescription = currentPowerupElement.querySelector('p:last-child');
-    if (powerupDescription) {
-      powerupDescription.style.display = 'block';
-    }
-  }
-}
-
-function removePowerup() {
-  if (currentPowerupElement) {
-    currentPowerupElement.remove();
-  }
 }
 
 // Rules Popup logic
@@ -593,11 +581,6 @@ const powerups = [
   { title: 'Swap Hands', description: 'Swap hands with opponent', chance: 4, type: 'Utility' },
 ];
 
-// Event binding
-document.getElementById('generateButton').addEventListener('click', () => {
-  const data = getRandomPowerup();
-  const el = createPowerupElement(data);
-  document.getElementById('powerupsContainer').appendChild(el);
-});
-document.getElementById('rulesText').addEventListener('click', toggleRulesPopup);
-document.getElementById('closeRulesButton').addEventListener('click', closeRulesPopup);
+function getPowerup(title) {
+  return powerups.find(p => p.title === title);
+}

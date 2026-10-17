@@ -4,6 +4,8 @@ Web page generates random "powerups" in the form of cards, which, can be used du
 
 ## Features
 
+- **Online Multiplayer Rooms:** Enter your name, then create a room (2-8 players, 4 by default) or join one with a 5 character code or invite link. Works across different networks and countries, no account needed.
+- **Shared Table:** Everyone sees who is in the room, how many powerups each player holds and an activity log. When a player uses a powerup, everyone else gets a notification.
 - **Random Powerups Generation:** Powerups are randomly generated each time the "Generate Powerup" button is clicked.
 - **Powerup Effects:** Each powerup comes with a unique ability (e.g., stealing cards, forcing a draw, etc.).
 - **Rules Popup:** View the rules of the game by clicking on the "Rules" link.
@@ -48,7 +50,10 @@ power-deal
 
 ## How to Use
 
-1. **Generate Powerups:** Click the "Generate Powerup" button to create a random powerup.
-2. **View Powerup Details:** Click on any generated powerup to open a detailed popup displaying its image and description.
-3. **Use Powerup:** Once in the popup, click the "Use Powerup" button to apply the powerup and close the popup.
-4. **Close Popup:** You can also close the popup by clicking the "Close" button.
+1. **Enter your name**, then either:
+   - **Create game:** pick the max number of players and share the room code (or the invite link) with your friends.
+   - **Join game:** type in the code you were given, or just open the invite link.
+2. **Generate Powerups:** Click the "Generate Powerup" button to create a random powerup.
+3. **View Powerup Details:** Click on any generated powerup to open a detailed popup displaying its image and description.
+4. **Use Powerup:** Once in the popup, click the "Use Powerup" button to apply the powerup. Everyone in the room is notified.
+5. **Close Popup:** You can also close the popup by clicking the "Close" button.
