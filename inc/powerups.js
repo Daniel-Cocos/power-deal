@@ -19,6 +19,16 @@ function getRarity(chance) {
   return { label: 'Common', cls: 'common' };
 }
 
+// What each powerup costs to use, like actions and bonus actions in Baldur's Gate 3
+const COST_LABELS = { action: 'Action', bonus: 'Bonus action' };
+
+function createCostTag(cost, short = false) {
+  const tag = document.createElement('span');
+  tag.classList.add('cost', cost);
+  tag.textContent = short ? COST_LABELS[cost].split(' ')[0] : COST_LABELS[cost];
+  return tag;
+}
+
 function createPowerupElement(data, onClick) {
   const powerup = document.createElement('div');
   powerup.classList.add('powerup');
@@ -48,7 +58,8 @@ function createPowerupElement(data, onClick) {
   // Type of powerup
   const type = document.createElement('p');
   type.classList.add('type');
-  type.textContent = data.type;
+  type.textContent = data.type + ' · ';
+  type.appendChild(createCostTag(data.cost, true));
   powerup.appendChild(type);
 
   if (onClick) powerup.addEventListener('click', onClick);
@@ -460,6 +471,74 @@ function createPowerupSVG(title) {
       break;
     }
 
+    case 'Speed': {
+      ellipse(100, 125, 45, 10, '#00000033');
+      // Lightning bolt
+      path('M108,30 L78,82 L98,82 L88,122 L124,64 L103,64 L114,30 Z', '#ffd54a', '#ff9800', 2);
+      // Speed lines
+      line(40, 60, 70, 60, '#ffd54a88', 3);
+      line(30, 78, 66, 78, '#ffd54a66', 3);
+      line(44, 96, 72, 96, '#ffd54a44', 3);
+      break;
+    }
+
+    case 'Slow': {
+      ellipse(100, 125, 45, 10, '#00000033');
+      // Hourglass
+      rect(70, 30, 60, 8, '#8d6e63', 3);
+      rect(70, 112, 60, 8, '#8d6e63', 3);
+      path('M76,38 L124,38 L104,75 L124,112 L76,112 L96,75 Z', '#b3e5fc33', '#81d4fa', 2);
+      path('M84,44 L116,44 L100,70 Z', '#ffcc80'); // Sand on top
+      path('M100,92 L118,110 L82,110 Z', '#ffcc80'); // Sand at the bottom
+      line(100, 75, 100, 104, '#ffcc80', 1.5, true);
+      break;
+    }
+
+    case 'Wild Card': {
+      ellipse(100, 128, 55, 10, '#00000033');
+      // Two fanned cards
+      const back = document.createElementNS(svgNS, 'g');
+      back.setAttribute('transform', 'rotate(-14 100 80)');
+      svg.appendChild(back);
+      rect(60, 40, 44, 66, '#7b1fa2', 6);
+      back.appendChild(svg.lastChild);
+      rect(96, 40, 44, 66, '#fff', 6);
+      svg.lastChild.setAttribute('transform', 'rotate(12 118 73)');
+      text('★', 118, 84, '#e91e63', 30);
+      svg.lastChild.setAttribute('transform', 'rotate(12 118 73)');
+      text('★', 82, 82, '#ffd54a', 26);
+      svg.lastChild.setAttribute('transform', 'rotate(-14 100 80)');
+      circle(60, 35, 2, '#ffd54a');
+      circle(146, 40, 1.5, '#e91e63');
+      circle(140, 112, 2, '#ffd54a');
+      break;
+    }
+
+    case 'Peek': {
+      ellipse(100, 125, 45, 10, '#00000033');
+      // Face-down card with an eye
+      rect(76, 42, 48, 72, '#1565c0', 6);
+      rect(82, 48, 36, 60, 'none', 4);
+      svg.lastChild.setAttribute('stroke', '#90caf9');
+      path('M68,78 Q100,52 132,78 Q100,104 68,78 Z', '#fff', '#0d47a1', 2);
+      circle(100, 78, 10, '#0d47a1');
+      circle(100, 78, 4, '#000');
+      circle(97, 75, 2, '#fff');
+      break;
+    }
+
+    case 'Double Down': {
+      ellipse(100, 128, 50, 10, '#00000033');
+      // Two chip stacks
+      for (let i = 0; i < 3; i++) {
+        ellipse(72, 112 - i * 9, 22, 8, i % 2 ? '#fff' : '#2e7d32');
+        ellipse(128, 112 - i * 9, 22, 8, i % 2 ? '#fff' : '#2e7d32');
+      }
+      for (let i = 3; i < 6; i++) ellipse(128, 112 - i * 9, 22, 8, i % 2 ? '#fff' : '#2e7d32');
+      text('×2', 100, 50, '#ffd54a', 30);
+      break;
+    }
+
     default:
       rect(60, 60, 80, 30, '#666', 8);
       break;
@@ -493,8 +572,10 @@ function createPowerupSVG(title) {
 }
 
 // Popup logic
-// onUse is optional: when given, a "Use Powerup" button is shown
-function showPopup(data, onUse) {
+// onUse is optional: when given, a "Use Powerup" button is shown.
+// blockedReason (optional) disables that button and says why.
+// targets (optional) lists the players a targeted powerup can be used on.
+function showPopup(data, onUse, blockedReason = '', targets = []) {
   const popup = document.getElementById('powerupPopup');
   const container = popup.querySelector('.popup-content');
   container.innerHTML = ''; // clear previous
@@ -518,15 +599,37 @@ function showPopup(data, onUse) {
   desc.textContent = data.description;
   container.appendChild(desc);
 
+  const cost = document.createElement('p');
+  cost.classList.add('popup-cost');
+  cost.append('Costs: ', createCostTag(data.cost));
+  container.appendChild(cost);
+
   // Buttons
+  let targetSelect = null;
+  if (onUse && data.target) {
+    targetSelect = document.createElement('select');
+    targetSelect.classList.add('popup-target');
+    for (const t of targets) targetSelect.add(new Option(t.name, t.id));
+    if (!targets.length) blockedReason = blockedReason || 'There is nobody to use this on.';
+    else container.appendChild(targetSelect);
+  }
+
   if (onUse) {
     const useBtn = document.createElement('button');
     useBtn.textContent = 'Use Powerup';
+    useBtn.disabled = !!blockedReason;
     useBtn.addEventListener('click', () => {
       popup.style.display = 'none';
-      onUse();
+      onUse(targetSelect ? targetSelect.value : undefined);
     });
     container.appendChild(useBtn);
+
+    if (blockedReason) {
+      const reason = document.createElement('p');
+      reason.classList.add('popup-blocked');
+      reason.textContent = blockedReason;
+      container.appendChild(reason);
+    }
   }
 
   const closeBtn = document.createElement('button');
@@ -547,9 +650,16 @@ function toggleRulesPopup() {
      1. Players start with an equal number of chips.<br>
      2. Each round, players place a bet, draw 2 cards from the physical deck just like in a normal game of black jack and draw 3 power-up cards.<br>
      3. Goal is to reach 21.<br>
-     4. Players take turns until everyone agrees to finish the round.<br>
+     4. Players take turns until everyone agrees to finish the round. The app keeps track of whose turn it is, press "End turn" when you are done.<br>
      5. In the case of a draw, all chips go into a temporary pot for which next round will be played for.<br>
      6. Game ends when only one player is left with chips.<br><br>
+
+     <strong>Actions:</strong><br>
+     1. At the start of your turn you get 1 <span class="cost action">Action</span> and 1 <span class="cost bonus">Bonus action</span>.<br>
+     2. Big power-ups cost your Action, smaller ones cost your Bonus action. Each power-up shows its cost.<br>
+     3. Unused points don't stack, you always start your turn with exactly 1 of each.<br>
+     4. Points you don't spend on your turn stay available until your next turn, so you can use them for defensive power-ups when someone targets you.<br>
+     5. Some power-ups change your points: <em>Speed</em> trades your Bonus action for an extra Action, <em>Slow</em> takes an opponent's next Bonus action.<br><br>
 
      <strong>Power-ups:</strong><br>
      1. Offensive powerups owned can be used only during your turn.<br>
@@ -565,20 +675,25 @@ function closeRulesPopup() {
 
 // Powerups
 const powerups = [
-  { title: '+10', description: 'Add 10 to self or opponent', chance: 5, type: 'Offensive' },
-  { title: '+5', description: 'Add 5 to self or opponent', chance: 8, type: 'Offensive' },
-  { title: 'Chicken', description: 'Remove 1 chip from your bet', chance: 11, type: 'Defensive' },
-  { title: 'Force Draw', description: 'Force opponent to draw another card', chance: 8, type: 'Offensive' },
-  { title: 'Invisible Hand', description: 'Your cards are hidden next round', chance: 3, type: 'Utility' },
-  { title: 'Mirror', description: 'Redirect offensive powerup back to user', chance: 7, type: 'Defensive' },
-  { title: 'Raised Stakes', description: 'Force everyone to raise bets by 3 including self', chance: 9, type: 'Utility' },
-  { title: 'Remove', description: 'Remove latest drawn card from opponent', chance: 9, type: 'Offensive' },
-  { title: 'Rewind', description: 'Revert last action', chance: 10, type: 'Utility' },
-  { title: 'Shield', description: 'Used to prevent any powerup to be used on you', chance: 9, type: 'Defensive' },
-  { title: 'Signal Jammer', description: 'Block opponent powerups next round', chance: 4, type: 'Utility' },
-  { title: 'Steal', description: 'Steal last drawn card from one opponent', chance: 10, type: 'Offensive' },
-  { title: 'Sturdy Wipe', description: 'Make one opponent lose all the powerups that they have aquired', chance: 3, type: 'Utility' },
-  { title: 'Swap Hands', description: 'Swap hands with opponent', chance: 4, type: 'Utility' },
+  { title: '+10', description: 'Add 10 to self or opponent', chance: 5, type: 'Offensive', cost: 'action' },
+  { title: '+5', description: 'Add 5 to self or opponent', chance: 8, type: 'Offensive', cost: 'bonus' },
+  { title: 'Chicken', description: 'Remove 1 chip from your bet', chance: 11, type: 'Defensive', cost: 'bonus' },
+  { title: 'Force Draw', description: 'Force opponent to draw another card', chance: 8, type: 'Offensive', cost: 'action' },
+  { title: 'Invisible Hand', description: 'Your cards are hidden next round', chance: 3, type: 'Utility', cost: 'action' },
+  { title: 'Mirror', description: 'Redirect offensive powerup back to user', chance: 7, type: 'Defensive', cost: 'bonus' },
+  { title: 'Raised Stakes', description: 'Force everyone to raise bets by 3 including self', chance: 9, type: 'Utility', cost: 'action' },
+  { title: 'Remove', description: 'Remove latest drawn card from opponent', chance: 9, type: 'Offensive', cost: 'action' },
+  { title: 'Rewind', description: 'Revert last action', chance: 10, type: 'Utility', cost: 'bonus' },
+  { title: 'Shield', description: 'Used to prevent any powerup to be used on you', chance: 9, type: 'Defensive', cost: 'bonus' },
+  { title: 'Signal Jammer', description: 'Block opponent powerups next round', chance: 4, type: 'Utility', cost: 'action' },
+  { title: 'Steal', description: 'Steal last drawn card from one opponent', chance: 10, type: 'Offensive', cost: 'action' },
+  { title: 'Sturdy Wipe', description: 'Make one opponent lose all the powerups that they have aquired', chance: 3, type: 'Utility', cost: 'action' },
+  { title: 'Swap Hands', description: 'Swap hands with opponent', chance: 4, type: 'Utility', cost: 'action' },
+  { title: 'Speed', description: 'Gain an extra Action this turn', chance: 7, type: 'Utility', cost: 'bonus', effect: 'speed' },
+  { title: 'Slow', description: 'Chosen opponent starts their next turn without a Bonus action', chance: 6, type: 'Offensive', cost: 'action', effect: 'slow', target: true },
+  { title: 'Wild Card', description: 'Draw 2 random powerups', chance: 5, type: 'Utility', cost: 'action', effect: 'wild' },
+  { title: 'Peek', description: 'Secretly look at the top card of the deck', chance: 9, type: 'Utility', cost: 'bonus' },
+  { title: 'Double Down', description: 'Double your bet, then draw exactly one more card', chance: 6, type: 'Utility', cost: 'action' },
 ];
 
 function getPowerup(title) {
