@@ -43,6 +43,7 @@ let hostConn = null;  // client: connection to the host
 const connections = new Map(); // host: connection -> player id
 let lastSeenLogId = 0;
 let joinTimeout = null;
+let seenCardUids = null; // cards already shown, so only new ones get the deal animation
 
 const $ = id => document.getElementById(id);
 
@@ -71,8 +72,43 @@ function findPlayer(id) {
 
 // ---------- Host: game state ----------
 
+function newPoints() {
+  return { action: 1, bonus: 1 };
+}
+
 function newPlayer(id, name) {
-  return { id, name, connected: true, cards: [] };
+  return { id, name, connected: true, cards: [], points: newPoints() };
+}
+
+// Why a player can't use a powerup right now, or '' if they can
+function useBlockedReason(player, data) {
+  const myTurn = state.turnId === player.id;
+  if (!myTurn && data.type !== 'Defensive') return 'Only defensive powerups can be used outside your turn.';
+  if (player.points[data.cost] < 1) {
+    return `No ${COST_LABELS[data.cost]} left ${myTurn ? 'this turn' : 'until your next turn'}.`;
+  }
+  return '';
+}
+
+// Next connected player after afterId, in join order
+function nextPlayer(afterId) {
+  const players = state.players;
+  const start = players.findIndex(p => p.id === afterId);
+  for (let step = 1; step <= players.length; step++) {
+    const player = players[(start + step) % players.length];
+    if (player.connected) return player;
+  }
+  return null;
+}
+
+function startTurn(player) {
+  state.turnId = player.id;
+  player.points = newPoints();
+  if (player.slowed) {
+    player.points.bonus = 0;
+    player.slowed = false;
+  }
+  addLog(`It's ${player.name}'s turn`, { kind: 'turn', by: player.id });
 }
 
 // extra: { kind, by, title } for powerup plays, which show a toast to the others
@@ -96,16 +132,38 @@ function applyAction(playerId, msg) {
 
   switch (msg.type) {
     case 'draw': {
-      state.nextUid = (state.nextUid || 0) + 1;
-      player.cards.push({ uid: state.nextUid, title: getRandomPowerup().title });
+      drawPowerup(player);
       addLog(`${player.name} drew a powerup`);
       break;
     }
     case 'use': {
       const index = player.cards.findIndex(c => c.uid === msg.uid);
       if (index === -1) return;
+      const data = getPowerup(player.cards[index].title);
+      if (!data || useBlockedReason(player, data)) return;
+      const target = data.target ? findPlayer(msg.target) : null;
+      if (data.target && (!target || target.id === player.id)) return;
       const [card] = player.cards.splice(index, 1);
-      addLog(`${player.name} used ${card.title}`, { kind: 'use', by: player.id, title: card.title });
+      player.points[data.cost] -= 1;
+      const on = target ? ` on ${target.name}` : '';
+      addLog(`${player.name} used ${card.title}${on}`, { kind: 'use', by: player.id, title: card.title });
+
+      // Powerups the app can resolve itself; the rest are played out at the table
+      if (data.effect === 'speed') player.points.action += 1;
+      if (data.effect === 'slow') target.slowed = true;
+      if (data.effect === 'wild') {
+        drawPowerup(player);
+        drawPowerup(player);
+      }
+      break;
+    }
+    case 'endTurn': {
+      // The host can also skip someone's turn, e.g. if they went AFK
+      if (playerId !== state.turnId && playerId !== state.hostId) return;
+      const current = findPlayer(state.turnId);
+      if (current && current.id !== playerId) addLog(`${player.name} skipped ${current.name}'s turn`);
+      const next = nextPlayer(state.turnId);
+      if (next) startTurn(next);
       break;
     }
     case 'discard': {
@@ -115,8 +173,8 @@ function applyAction(playerId, msg) {
       break;
     }
     case 'leave': {
-      removePlayer(playerId);
       addLog(`${player.name} left the room`);
+      removePlayer(playerId);
       break;
     }
     case 'setMax': {
@@ -137,8 +195,8 @@ function applyAction(playerId, msg) {
           setTimeout(() => conn.close(), 500);
         }
       }
-      removePlayer(target.id);
       addLog(`${target.name} was removed by the host`);
+      removePlayer(target.id);
       break;
     }
     default:
@@ -147,11 +205,18 @@ function applyAction(playerId, msg) {
   broadcast();
 }
 
+function drawPowerup(player) {
+  state.nextUid = (state.nextUid || 0) + 1;
+  player.cards.push({ uid: state.nextUid, title: getRandomPowerup().title });
+}
+
 function removePlayer(id) {
+  const next = state.turnId === id ? nextPlayer(id) : null;
   state.players = state.players.filter(p => p.id !== id);
   for (const [conn, connId] of connections) {
     if (connId === id) connections.delete(conn);
   }
+  if (next) startTurn(next);
 }
 
 function handleHello(conn, msg) {
@@ -230,6 +295,7 @@ function createRoom(name, maxPlayers, attempt = 0) {
       code,
       maxPlayers,
       hostId: myId,
+      turnId: myId, // the host goes first
       players: [newPlayer(myId, name)],
       log: [],
     };
@@ -335,6 +401,7 @@ function cleanup(destroyDelay = 0) {
   hostConn = null;
   connections.clear();
   lastSeenLogId = 0;
+  seenCardUids = null;
 }
 
 function leaveRoom() {
@@ -382,6 +449,23 @@ function enterRoom() {
   render();
 }
 
+// Green circle for the action, orange triangle for the bonus action, faded once spent
+function createPips(points) {
+  const pips = document.createElement('span');
+  pips.classList.add('pips');
+  for (const cost of ['action', 'bonus']) {
+    for (let i = 0; i < Math.max(1, points[cost]); i++) {
+      const pip = document.createElement('span');
+      const spent = points[cost] < 1;
+      pip.classList.add('pip', cost);
+      pip.classList.toggle('spent', spent);
+      pip.title = `${COST_LABELS[cost]} ${spent ? 'spent' : 'available'}`;
+      pips.appendChild(pip);
+    }
+  }
+  return pips;
+}
+
 function fillMaxPlayersSelect(select, min, value) {
   select.innerHTML = '';
   for (let n = min; n <= MAX_PLAYERS; n++) {
@@ -406,6 +490,7 @@ function render() {
   for (const player of state.players) {
     const li = document.createElement('li');
     li.classList.toggle('offline', !player.connected);
+    li.classList.toggle('current-turn', player.id === state.turnId);
 
     const name = document.createElement('span');
     name.classList.add('player-name');
@@ -421,6 +506,16 @@ function render() {
       tag.classList.add('muted');
       tag.textContent = ` (${tags.join(', ')})`;
       li.appendChild(tag);
+    }
+
+    li.appendChild(createPips(player.points));
+
+    if (player.slowed) {
+      const slowed = document.createElement('span');
+      slowed.classList.add('slowed');
+      slowed.textContent = '⏳';
+      slowed.title = 'Slowed: no Bonus action next turn';
+      li.appendChild(slowed);
     }
 
     const count = document.createElement('span');
@@ -447,16 +542,41 @@ function render() {
     fillMaxPlayersSelect($('roomMaxPlayers'), Math.max(MIN_PLAYERS, state.players.length), state.maxPlayers);
   }
 
+  // Turn bar
+  const turnPlayer = findPlayer(state.turnId);
+  const myTurn = state.turnId === myId;
+  $('turnText').textContent = myTurn ? 'Your turn' : `${turnPlayer ? turnPlayer.name : 'Someone'}'s turn`;
+  $('turnBar').classList.toggle('mine', myTurn);
+  const myPoints = $('myPoints');
+  myPoints.innerHTML = '';
+  if (me) myPoints.appendChild(createPips(me.points));
+  $('endTurnButton').hidden = !myTurn && !isHost;
+  $('endTurnButton').textContent = myTurn ? 'End turn' : 'Skip turn';
+
   // Your powerups
   const container = $('powerupsContainer');
   container.innerHTML = '';
   const cards = me ? me.cards : [];
+  const targets = state.players.filter(p => p.id !== myId);
+  const firstRender = !seenCardUids;
+  if (firstRender) seenCardUids = new Set();
+  let dealIndex = 0;
   for (const card of cards) {
     const data = getPowerup(card.title);
     if (!data) continue;
-    container.appendChild(createPowerupElement(data, () => {
-      showPopup(data, () => send({ type: 'use', uid: card.uid }));
-    }));
+    const reason = useBlockedReason(me, data);
+    const el = createPowerupElement(data, () => {
+      showPopup(data, target => playCard(el, { type: 'use', uid: card.uid, target }), reason, targets);
+    });
+    el.classList.toggle('unusable', !!reason);
+    if (!seenCardUids.has(card.uid)) {
+      seenCardUids.add(card.uid);
+      if (!firstRender) {
+        el.classList.add('dealt');
+        el.style.animationDelay = `${dealIndex++ * 120}ms`;
+      }
+    }
+    container.appendChild(el);
   }
   $('emptyHand').hidden = cards.length > 0;
   $('discardButton').hidden = cards.length === 0;
@@ -468,22 +588,40 @@ function render() {
     const li = document.createElement('li');
     li.textContent = entry.text;
     if (entry.kind === 'use') li.classList.add('used');
+    if (entry.kind === 'turn') li.classList.add('turn');
     log.appendChild(li);
   }
 
-  // Let everyone know when someone else plays a powerup
+  // Let everyone know when someone else plays a powerup, and you when your turn starts
   for (const entry of state.log) {
-    if (entry.id > lastSeenLogId && entry.kind === 'use' && entry.by !== myId) {
-      showToast(entry);
-    }
+    if (entry.id <= lastSeenLogId) continue;
+    if (entry.kind === 'use' && entry.by !== myId) showToast(entry);
+    if (entry.kind === 'turn' && entry.by === myId && me) showTurnBanner(me.points);
   }
   lastSeenLogId = state.nextLogId || 0;
 }
 
-function showToast(entry) {
+// Plays the card-flies-away animation, then sends the action
+function playCard(el, msg) {
+  el.classList.add('played');
+  setTimeout(() => send(msg), 350);
+}
+
+function showTurnBanner(points) {
+  const banner = $('turnBanner');
+  banner.querySelector('small').textContent = points.bonus > 0
+    ? `${points.action} Action · ${points.bonus} Bonus action`
+    : `${points.action} Action · Slowed, no Bonus action`;
+  banner.classList.remove('show');
+  void banner.offsetWidth; // restart the animation
+  banner.classList.add('show');
+}
+
+function showToast(entry, extraClass) {
   const data = getPowerup(entry.title);
   const toast = document.createElement('div');
   toast.classList.add('toast');
+  if (extraClass) toast.classList.add(extraClass);
   if (data) toast.classList.add(getRarity(data.chance).cls);
   toast.textContent = entry.text + (data ? ` - ${data.description}` : '');
   if (data) toast.addEventListener('click', () => showPopup(data));
@@ -569,6 +707,11 @@ function init() {
   });
 
   $('generateButton').addEventListener('click', () => send({ type: 'draw' }));
+  $('endTurnButton').addEventListener('click', () => {
+    const turnPlayer = findPlayer(state.turnId);
+    if (state.turnId !== myId && !confirm(`Skip ${turnPlayer ? turnPlayer.name : 'this player'}'s turn?`)) return;
+    send({ type: 'endTurn' });
+  });
   $('discardButton').addEventListener('click', () => {
     if (confirm('Discard all your powerups?')) send({ type: 'discard' });
   });
